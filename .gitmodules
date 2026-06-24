@@ -1,0 +1,3 @@
+[submodule "external/HFTMatchingEngine"]
+	path = external/HFTMatchingEngine
+	url = https://github.com/SFXNK/HFTMatchingEngine.git

@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.uv/
+build/
+dist/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Native build
+sim_core/build/
+*.so
+*.pyd
+*.dll
+*.o
+*.obj
+
+# Data & runtime artifacts
+data/cache/
+data/raw/
+runs/
+*.sqlite
+*.sqlite3
+.alphaforge/
+
+# Secrets (never commit API keys)
+.env
+.env.*
+secrets.properties
+*.secret.properties
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
