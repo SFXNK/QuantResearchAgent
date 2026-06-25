@@ -1,10 +1,10 @@
-# Alphaforge
+# QuantResearchAgent
 
 **An autonomous quant-research agent harness.**
 
-Alphaforge drives an LLM agent through the real research loop — form an alpha
+QuantResearchAgent drives an LLM agent through the real research loop -- form an alpha
 hypothesis, write signal/strategy code, backtest it in a sandbox, read the
-metrics, and refine — and then a rigorous **evaluation protocol** measures
+metrics, and refine -- and then a rigorous **evaluation protocol** measures
 *out-of-sample* robustness while actively fighting the failure modes that make
 most "AI finds alpha" work worthless: **lookahead bias, data leakage, and
 multiple-testing p-hacking**.
@@ -18,7 +18,7 @@ prints money." The headline metric is therefore honest:
 
 ## Why this is not a toy
 
-- **The backtest sim core is a real C++ matching engine.** Alphaforge vendors
+- **The backtest sim core is a real C++ matching engine.** QuantResearchAgent vendors
   [`HFTMatchingEngine`](https://github.com/SFXNK/HFTMatchingEngine) and extends
   it with a timestamp-ordered event loop, market orders, a queue-position fill
   model, and a portfolio/PnL layer, then binds it to Python with `nanobind`.
@@ -29,7 +29,7 @@ prints money." The headline metric is therefore honest:
   overfitting statistics (PBO, Deflated Sharpe Ratio) are built into the eval
   harness.
 - **Sandboxed execution.** Agent-written strategy code runs in a hardened,
-  network-denied container — which doubles as a leakage guard (no peeking at
+  network-denied container, which doubles as a leakage guard (no peeking at
   future data over the network).
 
 ## Architecture
@@ -59,7 +59,7 @@ See [`docs/DESIGN.md`](docs/DESIGN.md) for the full design.
 ## Layout
 
 ```
-src/alphaforge/      Python package (agent, tools, sandbox, eval, data, sim adapter, obs)
+src/quant_research_agent/      Python package (agent, tools, sandbox, eval, data, sim adapter, obs)
 sim_core/            C++ market simulator extending HFTMatchingEngine + nanobind bindings
 external/            Git submodule for HFTMatchingEngine (vendored, unchanged)
 tests/               Test + integrity suite
@@ -73,13 +73,13 @@ docs/                Design docs
 # 1. Python environment
 uv sync --extra dev --extra sandbox
 
-# 2. (Optional) build the native C++ sim core. Without this, Alphaforge falls
+# 2. (Optional) build the native C++ sim core. Without this, QuantResearchAgent falls
 #    back to a pure-Python reference simulator so everything still runs.
 git submodule update --init --recursive
 cmake -S sim_core -B sim_core/build -DCMAKE_BUILD_TYPE=Release
 cmake --build sim_core/build -j
 # copy/symlink the produced module onto the path, e.g.:
-#   cp sim_core/build/*.so src/alphaforge/sim/
+#   cp sim_core/build/*.so src/quant_research_agent/sim/
 
 # 3. (Optional, free) a local model for the agent
 ollama pull qwen2.5-coder:7b
@@ -88,10 +88,10 @@ ollama pull qwen2.5-coder:7b
 uv run pytest
 
 # 5. Smoke research run (uses the offline echo model by default -> $0)
-uv run alphaforge research --experiments 4 --model echo
+uv run qra research --experiments 4 --model echo
 
 # 6. Launch the dashboard
-uv run alphaforge dashboard
+uv run qra dashboard
 ```
 
 > **Platform note:** the hardened sandbox and the C++ build target Linux

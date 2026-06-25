@@ -1,5 +1,5 @@
 """Fetch a slice of REAL Binance USDT-M futures market data and convert it into
-the normalized event schema Alphaforge's loader understands.
+the normalized event schema QuantResearchAgent's loader understands.
 
 We use two free, unauthenticated public dumps from data.binance.vision:
   - bookTicker : best bid/ask updates  -> reconstruct top-of-book ADD/CANCEL

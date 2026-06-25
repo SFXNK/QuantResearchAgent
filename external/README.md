@@ -5,7 +5,7 @@ Third-party code vendored as git submodules. Nothing here is modified.
 ## HFTMatchingEngine
 
 The deterministic, price-time-priority limit-order-book matching engine that the
-Alphaforge sim core (`sim_core/`) extends. Pulled in as a submodule:
+QuantResearchAgent sim core (`sim_core/`) extends. Pulled in as a submodule:
 
 ```bash
 git submodule update --init --recursive

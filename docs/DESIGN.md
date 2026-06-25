@@ -1,4 +1,4 @@
-# Alphaforge Design
+# QuantResearchAgent Design
 
 ## 1. Problem & thesis
 
@@ -9,23 +9,23 @@ engineering problem is therefore **not** "can an agent find a strategy?" but
 **"can a harness let an agent search aggressively while remaining statistically
 honest about what it found?"**
 
-Alphaforge is built around that thesis. Every design decision favors
+QuantResearchAgent is built around that thesis. Every design decision favors
 *integrity of the measurement* over *impressiveness of the result*.
 
 ## 2. Component overview
 
 | Layer | Package | Responsibility |
 |------|---------|----------------|
-| Sim core | `sim_core/` (C++) + `alphaforge.sim` | Event-driven market simulation, realistic fills, portfolio/PnL |
-| Data | `alphaforge.data` | Partitioned, point-in-time datasets; synthetic + crypto L2 sources |
-| Strategy | `alphaforge.strategy` | Strategy interface + baselines |
-| Agent | `alphaforge.agent` | Research loop, journal memory, context budgeting |
-| Tools | `alphaforge.tools` | Typed, schema-generating tools the agent calls |
-| Sandbox | `alphaforge.sandbox` | Hardened isolated execution of agent code |
-| Eval | `alphaforge.eval` | Metrics, walk-forward, purged CV, PBO, multiple-testing |
-| Models | `alphaforge.models` | Provider-agnostic model gateway + cache |
-| Obs | `alphaforge.obs` | Experiment store, tracing, cost ledger, dashboard |
-| Control | `alphaforge.orchestrator`, `alphaforge.cli` | Parallel experiment orchestration + CLI |
+| Sim core | `sim_core/` (C++) + `quant_research_agent.sim` | Event-driven market simulation, realistic fills, portfolio/PnL |
+| Data | `quant_research_agent.data` | Partitioned, point-in-time datasets; synthetic + crypto L2 sources |
+| Strategy | `quant_research_agent.strategy` | Strategy interface + baselines |
+| Agent | `quant_research_agent.agent` | Research loop, journal memory, context budgeting |
+| Tools | `quant_research_agent.tools` | Typed, schema-generating tools the agent calls |
+| Sandbox | `quant_research_agent.sandbox` | Hardened isolated execution of agent code |
+| Eval | `quant_research_agent.eval` | Metrics, walk-forward, purged CV, PBO, multiple-testing |
+| Models | `quant_research_agent.models` | Provider-agnostic model gateway + cache |
+| Obs | `quant_research_agent.obs` | Experiment store, tracing, cost ledger, dashboard |
+| Control | `quant_research_agent.orchestrator`, `quant_research_agent.cli` | Parallel experiment orchestration + CLI |
 
 ## 3. The sim core (extending HFTMatchingEngine)
 
@@ -42,7 +42,7 @@ and add, in `sim_core/`:
    the simulator walks the opposite book to fill marketable quantity.
 3. **A queue-position fill model.** A strategy's resting limit order only fills
    after the volume ahead of it at that price has traded. We track each of the
-   agent's orders' queue position from book + trade events — the part naive
+   agent's orders' queue position from book + trade events, the part naive
    vectorized backtesters get wrong.
 4. **A portfolio/PnL layer** (`Portfolio`). Position, cash, fees, realized and
    unrealized PnL, computed from the fill callback.
@@ -53,7 +53,7 @@ crossed millions of times per backtest.
 
 ### Fallback
 
-`alphaforge.sim` exposes a `SimCore` protocol with two implementations:
+`quant_research_agent.sim` exposes a `SimCore` protocol with two implementations:
 `NativeSimCore` (the compiled C++ module) and `PythonSimCore` (a pure-Python
 reference). The Python implementation is the executable spec and lets the whole
 stack run with no native build. Tests assert the two agree.
@@ -71,7 +71,7 @@ Leakage is prevented structurally, not by convention:
 - **Point-in-time access.** Data requests are `as_of`-bounded; a request at
   time `t` cannot observe rows with timestamp `> t`.
 - **Holdout run by the harness.** Only the final, frozen strategy artifact is
-  evaluated on `HOLDOUT`, by the orchestrator — never inside the agent loop.
+  evaluated on `HOLDOUT`, by the orchestrator, never inside the agent loop.
 
 ## 5. Evaluation protocol
 

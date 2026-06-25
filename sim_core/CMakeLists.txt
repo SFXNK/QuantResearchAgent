@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(alphaforge_sim_native LANGUAGES CXX)
+project(quant_research_agent_sim_native LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -29,13 +29,13 @@ endif()
 list(APPEND CMAKE_PREFIX_PATH "${NB_CMAKE_DIR}")
 find_package(nanobind CONFIG REQUIRED)
 
-nanobind_add_module(alphaforge_sim_native STABLE_ABI NB_STATIC src/bindings.cpp)
+nanobind_add_module(quant_research_agent_sim_native STABLE_ABI NB_STATIC src/bindings.cpp)
 
-target_include_directories(alphaforge_sim_native PRIVATE
+target_include_directories(quant_research_agent_sim_native PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${ENGINE_DIR}")
 
-target_compile_options(alphaforge_sim_native PRIVATE
+target_compile_options(quant_research_agent_sim_native PRIVATE
     $<$<CONFIG:Release>:-O3>
     $<$<CONFIG:Release>:-march=native>
     -Wall -Wextra)

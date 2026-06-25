@@ -7,19 +7,19 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from alphaforge.config import DataConfig, EvalConfig, SimConfig
-from alphaforge.data import generate_synthetic
-from alphaforge.integrity import derive_seed
-from alphaforge.research.runner import run_backtest
-from alphaforge.sim import Action, Observation, PythonSimCore
-from alphaforge.strategy.baselines import MovingAverageCross
-from alphaforge.tools.backtest_tool import RunBacktestArgs, RunBacktestTool
-from alphaforge.tools.base import ToolContext
-from alphaforge.types import EventType, MarketEvent, Side
+from quant_research_agent.config import DataConfig, EvalConfig, SimConfig
+from quant_research_agent.data import generate_synthetic
+from quant_research_agent.integrity import derive_seed
+from quant_research_agent.research.runner import run_backtest
+from quant_research_agent.sim import Action, Observation, PythonSimCore
+from quant_research_agent.strategy.baselines import MovingAverageCross
+from quant_research_agent.tools.backtest_tool import RunBacktestArgs, RunBacktestTool
+from quant_research_agent.tools.base import ToolContext
+from quant_research_agent.types import EventType, MarketEvent, Side
 
 
 def test_determinism_same_seed_same_result() -> None:
-    from alphaforge.types import Partition
+    from quant_research_agent.types import Partition
 
     cfg = DataConfig(symbol="T", n_events=10_000)
     a = generate_synthetic(cfg, seed=42)
@@ -90,7 +90,7 @@ def test_maker_rebate_is_credited() -> None:
 async def test_run_backtest_tool_rejects_holdout(tmp_path: Path) -> None:
     ds = generate_synthetic(DataConfig(symbol="T", n_events=8_000), seed=1)
     (tmp_path / "s.py").write_text(
-        "from alphaforge.strategy.baselines import MovingAverageCross\n"
+        "from quant_research_agent.strategy.baselines import MovingAverageCross\n"
         "def build():\n    return MovingAverageCross()\n"
     )
     ctx = ToolContext(

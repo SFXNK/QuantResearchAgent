@@ -1,4 +1,4 @@
-// nanobind bindings for the Alphaforge market simulator.
+// nanobind bindings for the QuantResearchAgent market simulator.
 //
 // The Python layer passes events as parallel numpy arrays (cheap to marshal)
 // and a single decision-point callback, so the Python/C++ boundary is crossed
@@ -13,8 +13,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "alphaforge_sim/events.hpp"
-#include "alphaforge_sim/simulator.hpp"
+#include "quant_research_agent_sim/events.hpp"
+#include "quant_research_agent_sim/simulator.hpp"
 
 namespace nb = nanobind;
 using namespace afsim;
@@ -25,8 +25,8 @@ using ActionTuple = std::tuple<int8_t, int8_t, int64_t, int64_t, int64_t>;
 
 }  // namespace
 
-NB_MODULE(alphaforge_sim_native, m) {
-    m.doc() = "Alphaforge native market simulator (extends HFTMatchingEngine).";
+NB_MODULE(quant_research_agent_sim_native, m) {
+    m.doc() = "QuantResearchAgent native market simulator (extends HFTMatchingEngine).";
 
     nb::class_<RunResult>(m, "RunResult")
         .def_ro("equity", &RunResult::equity)

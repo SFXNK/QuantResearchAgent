@@ -2,7 +2,7 @@
 
 Most "AI finds alpha" projects are false-positive machines. Give a code-writing
 model enough attempts and it will produce a backtest that looks spectacular and
-generalizes to nothing. Alphaforge is an attempt to take the interesting part
+generalizes to nothing. QuantResearchAgent is an attempt to take the interesting part
 of that problem seriously: **not "can an agent find a strategy?" but "can a
 harness let an agent search aggressively while staying statistically honest
 about what it found?"**

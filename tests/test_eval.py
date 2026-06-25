@@ -6,9 +6,9 @@ from pathlib import Path
 
 import numpy as np
 
-from alphaforge.config import DataConfig, EvalConfig, SimConfig
-from alphaforge.data import generate_synthetic
-from alphaforge.eval import (
+from quant_research_agent.config import DataConfig, EvalConfig, SimConfig
+from quant_research_agent.data import generate_synthetic
+from quant_research_agent.eval import (
     Candidate,
     OutOfSampleEvaluator,
     benjamini_hochberg,
@@ -82,7 +82,7 @@ def test_protocol_end_to_end(tmp_path: Path) -> None:
             "ma",
             _write(
                 tmp_path / "ma.py",
-                "from alphaforge.strategy.baselines import MovingAverageCross\n"
+                "from quant_research_agent.strategy.baselines import MovingAverageCross\n"
                 "def build():\n    return MovingAverageCross()\n",
             ),
         ),
@@ -91,7 +91,7 @@ def test_protocol_end_to_end(tmp_path: Path) -> None:
             "rand",
             _write(
                 tmp_path / "rand.py",
-                "from alphaforge.strategy.baselines import RandomTrader\n"
+                "from quant_research_agent.strategy.baselines import RandomTrader\n"
                 "def build():\n    return RandomTrader(seed=1)\n",
             ),
         ),
@@ -100,7 +100,7 @@ def test_protocol_end_to_end(tmp_path: Path) -> None:
             "flat",
             _write(
                 tmp_path / "flat.py",
-                "from alphaforge.strategy.baselines import FlatStrategy\n"
+                "from quant_research_agent.strategy.baselines import FlatStrategy\n"
                 "def build():\n    return FlatStrategy()\n",
             ),
         ),

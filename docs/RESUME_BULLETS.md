@@ -1,4 +1,4 @@
-# Resume bullets (Alphaforge)
+# Resume bullets (QuantResearchAgent)
 
 Drop-in bullets for an "agent harness engineer" profile. Fill the `__` blanks
 after running `scripts/benchmark.py` and a real research run. Keep the honesty
@@ -6,7 +6,7 @@ framing: the headline is *survival rate after correction*, not raw returns.
 
 ## Project entry
 
-**Alphaforge - Autonomous Quant-Research Agent Harness** | Python, C++20, nanobind, Docker, asyncio, FastAPI
+**QuantResearchAgent - Autonomous Quant-Research Agent Harness** | Python, C++20, nanobind, Docker, asyncio, FastAPI
 
 - Built a provider-agnostic **agent harness** (model gateway, typed tool
   protocol with auto-generated JSON schemas, context/token budgeting, and a
@@ -37,7 +37,7 @@ framing: the headline is *survival rate after correction*, not raw returns.
 
 ## One-liner (if space-constrained)
 
-- Built **Alphaforge**, an autonomous quant-research agent harness: an LLM tool
+- Built **QuantResearchAgent**, an autonomous quant-research agent harness: an LLM tool
   loop over a **C++ event-driven market simulator** (nanobind) with a
   leakage-resistant, overfitting-aware (PBO / Deflated Sharpe / FDR) holdout
   evaluation - reporting that only __% of agent-generated strategies survive

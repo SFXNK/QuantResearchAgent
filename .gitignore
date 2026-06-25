@@ -24,7 +24,7 @@ data/raw/
 runs/
 *.sqlite
 *.sqlite3
-.alphaforge/
+.quant_research_agent/
 
 # Secrets (never commit API keys)
 .env

@@ -15,10 +15,10 @@ import argparse
 import time
 from concurrent.futures import ProcessPoolExecutor
 
-from alphaforge.config import DataConfig, SimConfig
-from alphaforge.data import generate_synthetic
-from alphaforge.sim import Action, NativeSimCore, Observation, PythonSimCore, native_available
-from alphaforge.types import MarketEvent, Partition, Side
+from quant_research_agent.config import DataConfig, SimConfig
+from quant_research_agent.data import generate_synthetic
+from quant_research_agent.sim import Action, NativeSimCore, Observation, PythonSimCore, native_available
+from quant_research_agent.types import MarketEvent, Partition, Side
 
 
 def _strategy(obs: Observation) -> list[Action]:

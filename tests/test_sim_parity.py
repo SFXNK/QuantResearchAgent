@@ -9,10 +9,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from alphaforge.config import SimConfig
-from alphaforge.sim import Action, Observation, PythonSimCore, native_available
-from alphaforge.sim.native import NativeSimCore
-from alphaforge.types import EventType, MarketEvent, Side
+from quant_research_agent.config import SimConfig
+from quant_research_agent.sim import Action, Observation, PythonSimCore, native_available
+from quant_research_agent.sim.native import NativeSimCore
+from quant_research_agent.types import EventType, MarketEvent, Side
 
 
 def _market(n: int = 2000) -> list[MarketEvent]:

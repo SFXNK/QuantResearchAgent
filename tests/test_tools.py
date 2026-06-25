@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from alphaforge.config import DataConfig, EvalConfig, SimConfig
-from alphaforge.data import generate_synthetic
-from alphaforge.models.base import ToolCall
-from alphaforge.tools import default_registry
-from alphaforge.tools.base import ToolContext
-from alphaforge.tools.code_tool import WriteStrategyArgs, WriteStrategyTool
-from alphaforge.tools.data_tool import DataSummaryArgs, DataSummaryTool
+from quant_research_agent.config import DataConfig, EvalConfig, SimConfig
+from quant_research_agent.data import generate_synthetic
+from quant_research_agent.models.base import ToolCall
+from quant_research_agent.tools import default_registry
+from quant_research_agent.tools.base import ToolContext
+from quant_research_agent.tools.code_tool import WriteStrategyArgs, WriteStrategyTool
+from quant_research_agent.tools.data_tool import DataSummaryArgs, DataSummaryTool
 
 
 def _ctx(tmp_path: Path) -> ToolContext:

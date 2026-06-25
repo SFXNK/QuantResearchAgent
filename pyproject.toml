@@ -1,5 +1,5 @@
 [project]
-name = "alphaforge"
+name = "quant-research-agent"
 version = "0.1.0"
 description = "An autonomous quant-research agent harness with a C++ market-sim core and a leakage-resistant evaluation protocol."
 readme = "README.md"
@@ -34,14 +34,14 @@ dev = [
 ]
 
 [project.scripts]
-alphaforge = "alphaforge.cli:main"
+qra = "quant_research_agent.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/alphaforge"]
+packages = ["src/quant_research_agent"]
 
 [tool.ruff]
 line-length = 100

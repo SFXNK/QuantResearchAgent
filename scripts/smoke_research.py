@@ -3,7 +3,7 @@
     python scripts/smoke_research.py
 
 Runs a handful of experiments on synthetic data, evaluates out-of-sample, and
-prints the honest headline. Use the CLI (`alphaforge research`) for full control.
+prints the honest headline. Use the CLI (`quant_research_agent research`) for full control.
 """
 
 from __future__ import annotations
@@ -12,13 +12,13 @@ import asyncio
 import tempfile
 from pathlib import Path
 
-from alphaforge.config import AgentConfig, AlphaforgeConfig, DataConfig, ModelConfig
-from alphaforge.orchestrator import Orchestrator
+from quant_research_agent.config import AgentConfig, QuantResearchAgentConfig, DataConfig, ModelConfig
+from quant_research_agent.orchestrator import Orchestrator
 
 
 async def main() -> None:
-    tmp = Path(tempfile.mkdtemp(prefix="alphaforge_smoke_"))
-    cfg = AlphaforgeConfig(
+    tmp = Path(tempfile.mkdtemp(prefix="quant_research_agent_smoke_"))
+    cfg = QuantResearchAgentConfig(
         seed=7,
         run_dir=tmp,
         db_path=tmp / "af.sqlite",

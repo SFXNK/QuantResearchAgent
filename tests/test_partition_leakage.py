@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from alphaforge.config import DataConfig
-from alphaforge.data import generate_synthetic
-from alphaforge.data.dataset import LeakageError
-from alphaforge.types import Partition
+from quant_research_agent.config import DataConfig
+from quant_research_agent.data import generate_synthetic
+from quant_research_agent.data.dataset import LeakageError
+from quant_research_agent.types import Partition
 
 
 def _ds(n: int = 20_000, seed: int = 3):

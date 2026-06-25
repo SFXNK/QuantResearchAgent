@@ -7,68 +7,6 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "alphaforge"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "jinja2" },
-    { name = "numpy" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-sdk" },
-    { name = "polars" },
-    { name = "pyarrow" },
-    { name = "pydantic" },
-    { name = "rich" },
-    { name = "typer" },
-    { name = "uvicorn" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "nanobind" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-    { name = "types-requests" },
-]
-native = [
-    { name = "nanobind" },
-    { name = "scikit-build-core" },
-]
-sandbox = [
-    { name = "docker" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "docker", marker = "extra == 'sandbox'", specifier = ">=7.1" },
-    { name = "fastapi", specifier = ">=0.111" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "jinja2", specifier = ">=3.1" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
-    { name = "nanobind", marker = "extra == 'dev'", specifier = ">=2.0" },
-    { name = "nanobind", marker = "extra == 'native'", specifier = ">=2.0" },
-    { name = "numpy", specifier = ">=1.26" },
-    { name = "opentelemetry-api", specifier = ">=1.25" },
-    { name = "opentelemetry-sdk", specifier = ">=1.25" },
-    { name = "polars", specifier = ">=1.0" },
-    { name = "pyarrow", specifier = ">=16.0" },
-    { name = "pydantic", specifier = ">=2.7" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
-    { name = "rich", specifier = ">=13.7" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
-    { name = "scikit-build-core", marker = "extra == 'native'", specifier = ">=0.9" },
-    { name = "typer", specifier = ">=0.12" },
-    { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32" },
-    { name = "uvicorn", specifier = ">=0.30" },
-]
-provides-extras = ["sandbox", "native", "dev"]
-
-[[package]]
 name = "annotated-doc"
 version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -879,6 +817,68 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0f/cd/7e1de64a4a6f69c04214169657ccab0d93a670ea50e35eb8f489d7378249/pywin32-312-cp315-cp315-win_amd64.whl", hash = "sha256:c2f03a0f73f804a13c2735b99392b0cd426bb4f2c4d0178e5ac966a0f21618d5", size = 7025293, upload-time = "2026-06-04T07:49:54.857Z" },
     { url = "https://files.pythonhosted.org/packages/23/ed/4532e9388e65fa16b46776ef47ad631a64eda1631884488af707666350ed/pywin32-312-cp315-cp315-win_arm64.whl", hash = "sha256:a8597d28f267b39074aef51fa593530082b39cbe5a074226096857b1fed2dfb9", size = 6840337, upload-time = "2026-06-04T07:49:57.531Z" },
 ]
+
+[[package]]
+name = "quant-research-agent"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "jinja2" },
+    { name = "numpy" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-sdk" },
+    { name = "polars" },
+    { name = "pyarrow" },
+    { name = "pydantic" },
+    { name = "rich" },
+    { name = "typer" },
+    { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "nanobind" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+    { name = "types-requests" },
+]
+native = [
+    { name = "nanobind" },
+    { name = "scikit-build-core" },
+]
+sandbox = [
+    { name = "docker" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "docker", marker = "extra == 'sandbox'", specifier = ">=7.1" },
+    { name = "fastapi", specifier = ">=0.111" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "jinja2", specifier = ">=3.1" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
+    { name = "nanobind", marker = "extra == 'dev'", specifier = ">=2.0" },
+    { name = "nanobind", marker = "extra == 'native'", specifier = ">=2.0" },
+    { name = "numpy", specifier = ">=1.26" },
+    { name = "opentelemetry-api", specifier = ">=1.25" },
+    { name = "opentelemetry-sdk", specifier = ">=1.25" },
+    { name = "polars", specifier = ">=1.0" },
+    { name = "pyarrow", specifier = ">=16.0" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
+    { name = "rich", specifier = ">=13.7" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
+    { name = "scikit-build-core", marker = "extra == 'native'", specifier = ">=0.9" },
+    { name = "typer", specifier = ">=0.12" },
+    { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32" },
+    { name = "uvicorn", specifier = ">=0.30" },
+]
+provides-extras = ["sandbox", "native", "dev"]
 
 [[package]]
 name = "requests"

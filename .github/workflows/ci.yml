@@ -35,7 +35,7 @@ jobs:
         run: uv run pytest
 
       - name: Smoke research run (offline echo model, deterministic)
-        run: uv run alphaforge research --experiments 2 --model echo --seed 7
+        run: uv run quant_research_agent research --experiments 2 --model echo --seed 7
 
   native:
     name: Build C++ sim core
@@ -60,5 +60,5 @@ jobs:
       - name: Native parity test
         run: |
           uv sync --extra dev
-          cp sim_core/build/*.so src/alphaforge/sim/ || true
+          cp sim_core/build/*.so src/quant_research_agent/sim/ || true
           uv run pytest tests/test_sim_parity.py

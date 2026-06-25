@@ -13,18 +13,18 @@ from pathlib import Path
 
 import pytest
 
-from alphaforge.config import DataConfig, SandboxConfig, SimConfig
-from alphaforge.data import generate_synthetic
-from alphaforge.research.runner import save_events
-from alphaforge.sandbox import LocalSandbox, docker_available
-from alphaforge.sandbox.docker_sandbox import DockerSandbox
-from alphaforge.types import Partition
+from quant_research_agent.config import DataConfig, SandboxConfig, SimConfig
+from quant_research_agent.data import generate_synthetic
+from quant_research_agent.research.runner import save_events
+from quant_research_agent.sandbox import LocalSandbox, docker_available
+from quant_research_agent.sandbox.docker_sandbox import DockerSandbox
+from quant_research_agent.types import Partition
 
 posix_only = pytest.mark.skipif(os.name != "posix", reason="rlimits are POSIX-only")
 
 _STRATEGY = '''\
-from alphaforge.sim.base import Action, Observation
-from alphaforge.types import Side
+from quant_research_agent.sim.base import Action, Observation
+from quant_research_agent.types import Side
 
 
 class S:
@@ -112,6 +112,6 @@ def test_docker_blocks_network(tmp_path: Path) -> None:  # pragma: no cover - ne
 @pytest.mark.skipif(sys.platform == "win32", reason="entrypoint smoke is POSIX-first")
 def test_runner_module_importable() -> None:
     # The sandbox entrypoint must be importable as a module.
-    import alphaforge.research.runner as r
+    import quant_research_agent.research.runner as r
 
     assert hasattr(r, "_main")

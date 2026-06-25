@@ -6,15 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from alphaforge.config import AgentConfig, AlphaforgeConfig, DataConfig, ModelConfig
-from alphaforge.obs.store import ExperimentStore
-from alphaforge.orchestrator import Orchestrator
-from alphaforge.report import generate_markdown_report
+from quant_research_agent.config import AgentConfig, QuantResearchAgentConfig, DataConfig, ModelConfig
+from quant_research_agent.obs.store import ExperimentStore
+from quant_research_agent.orchestrator import Orchestrator
+from quant_research_agent.report import generate_markdown_report
 
 
 @pytest.mark.asyncio
 async def test_full_run_persists_and_reports(tmp_path: Path) -> None:
-    cfg = AlphaforgeConfig(
+    cfg = QuantResearchAgentConfig(
         seed=3,
         run_dir=tmp_path,
         db_path=tmp_path / "af.sqlite",
@@ -40,7 +40,7 @@ async def test_full_run_persists_and_reports(tmp_path: Path) -> None:
     assert len(evals) == summary.n_submitted
 
     md = generate_markdown_report(store, summary.run_id)
-    assert "Alphaforge run" in md
+    assert "QuantResearchAgent run" in md
     assert "PBO" in md
 
     # cost must be zero on the offline echo model
@@ -49,7 +49,7 @@ async def test_full_run_persists_and_reports(tmp_path: Path) -> None:
 
 @pytest.mark.asyncio
 async def test_response_cache_makes_rerun_free(tmp_path: Path) -> None:
-    cfg = AlphaforgeConfig(
+    cfg = QuantResearchAgentConfig(
         seed=3,
         run_dir=tmp_path,
         db_path=tmp_path / "af.sqlite",

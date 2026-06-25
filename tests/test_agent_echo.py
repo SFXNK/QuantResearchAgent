@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from alphaforge.agent import ResearchAgent
-from alphaforge.config import AgentConfig, DataConfig, EvalConfig, ModelConfig, SimConfig
-from alphaforge.data import generate_synthetic
-from alphaforge.models.gateway import ModelGateway
-from alphaforge.tools import default_registry
-from alphaforge.tools.base import ToolContext
+from quant_research_agent.agent import ResearchAgent
+from quant_research_agent.config import AgentConfig, DataConfig, EvalConfig, ModelConfig, SimConfig
+from quant_research_agent.data import generate_synthetic
+from quant_research_agent.models.gateway import ModelGateway
+from quant_research_agent.tools import default_registry
+from quant_research_agent.tools.base import ToolContext
 
 
 @pytest.mark.asyncio
