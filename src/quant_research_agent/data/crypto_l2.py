@@ -84,9 +84,22 @@ def frame_to_events(df: pl.DataFrame, tick_size: float) -> list[MarketEvent]:
 
 
 def load_l2(path: str | Path, cfg: DataConfig, tick_size: float) -> Dataset:
-    """Load a parquet/csv L2+trade file into a partitioned `Dataset`."""
+    """Load L2+trade data into a partitioned `Dataset`.
+
+    ``path`` may be a single ``.parquet``/``.csv`` file, a glob pattern, or a
+    directory of segment files (e.g. the output of ``record_okx_segmented``); in
+    the directory/glob case all matching parquet files are concatenated in name
+    order before being sorted by timestamp.
+    """
     path = Path(path)
-    if path.suffix == ".parquet":
+    if path.is_dir():
+        files = sorted(path.glob("*.parquet"))
+        if not files:
+            raise ValueError(f"No .parquet segment files found in directory {path}")
+        df = pl.concat([pl.read_parquet(f) for f in files], how="vertical")
+    elif any(ch in str(path) for ch in "*?[") and path.suffix == ".parquet":
+        df = pl.read_parquet(str(path))
+    elif path.suffix == ".parquet":
         df = pl.read_parquet(path)
     else:
         df = pl.read_csv(path)

@@ -113,6 +113,108 @@ def research(
     console.print(f"Report written to [bold]{report_path}[/bold]")
 
 
+@app.command(name="fetch-okx")
+def fetch_okx_cmd(
+    out: Path = typer.Argument(..., help="Output file (.parquet or .csv) for the recorded events."),
+    inst_id: str = typer.Option("BTC-USDT", help="OKX instrument, e.g. BTC-USDT or BTC-USDT-SWAP."),
+    duration: float = typer.Option(60.0, help="Seconds to record the live stream."),
+    qty_scale: float = typer.Option(
+        1e6, help="Multiplier on fractional sizes before integer rounding (0.001 BTC -> 1000)."
+    ),
+    max_events: int = typer.Option(None, help="Optional early stop after this many events."),
+    channel: str = typer.Option("books", help="Order-book depth channel (books = 400 levels)."),
+) -> None:
+    """Record live OKX L2 depth + trades into a crypto_l2-compatible file.
+
+    Then run research on it, e.g.::
+
+        qra fetch-okx data/raw/okx_btc.parquet --duration 120
+        qra research --data-source crypto_l2 --data-path data/raw/okx_btc.parquet \
+            --symbol BTC-USDT --tick-size 0.1
+    """
+    from quant_research_agent.data.okx import fetch_okx
+
+    console.print(
+        f"Recording OKX [bold]{inst_id}[/bold] ({channel}+trades) for {duration:.0f}s -> {out}"
+    )
+    path = fetch_okx(
+        out_path=out,
+        inst_id=inst_id,
+        duration_s=duration,
+        qty_scale=qty_scale,
+        max_events=max_events,
+        channel=channel,
+    )
+    import polars as pl
+
+    n = pl.read_parquet(path).height if path.suffix != ".csv" else pl.read_csv(path).height
+    console.print(f"Wrote [bold]{n}[/bold] events to [bold]{path}[/bold]")
+    console.print(
+        f"Run: qra research --data-source crypto_l2 --data-path {path} "
+        f"--symbol {inst_id} --tick-size 0.1"
+    )
+
+
+@app.command(name="fetch-okx-long")
+def fetch_okx_long_cmd(
+    out_dir: Path = typer.Argument(..., help="Directory to write segment files into."),
+    inst_id: str = typer.Option("BTC-USDT", help="OKX instrument, e.g. BTC-USDT or BTC-USDT-SWAP."),
+    segment_minutes: float = typer.Option(10.0, help="Minutes of data per file."),
+    total_minutes: float = typer.Option(
+        None, help="Total run length in minutes; omit to run until Ctrl+C."
+    ),
+    qty_scale: float = typer.Option(
+        1e6, help="Multiplier on fractional sizes before integer rounding (0.001 BTC -> 1000)."
+    ),
+    channel: str = typer.Option("books", help="Order-book depth channel (books = 400 levels)."),
+) -> None:
+    """Long-run OKX recorder: one file per segment, auto-reconnect, crash-safe.
+
+    Writes ``<inst>_0001.parquet``, ``_0002`` ... Stop anytime with Ctrl+C (the
+    partial last segment is still saved). Run research over the whole directory::
+
+        qra fetch-okx-long data/raw/okx_btc --segment-minutes 10
+        qra research --data-source crypto_l2 --data-path data/raw/okx_btc \
+            --symbol BTC-USDT --tick-size 0.1
+    """
+    from quant_research_agent.data.okx import record_okx_segmented
+
+    total = f"{total_minutes:.0f} min" if total_minutes else "until Ctrl+C"
+    console.print(
+        f"Recording OKX [bold]{inst_id}[/bold] -> {out_dir} "
+        f"(every {segment_minutes:.0f} min, {total})"
+    )
+
+    def _report(path: Path, n: int) -> None:
+        console.print(f"  segment [bold]{path.name}[/bold] ({n} events)")
+
+    def _reconnect(attempt: int, exc: Exception) -> None:
+        console.print(
+            f"  [yellow]connection dropped ({type(exc).__name__}); "
+            f"reconnect attempt {attempt}...[/yellow]"
+        )
+
+    try:
+        paths = record_okx_segmented(
+            out_dir=out_dir,
+            inst_id=inst_id,
+            segment_s=segment_minutes * 60.0,
+            total_duration_s=(total_minutes * 60.0 if total_minutes else None),
+            qty_scale=qty_scale,
+            channel=channel,
+            on_segment=_report,
+            on_reconnect=_reconnect,
+        )
+    except KeyboardInterrupt:
+        console.print("[yellow]Interrupted; final segment flushed.[/yellow]")
+        return
+    console.print(f"Wrote [bold]{len(paths)}[/bold] segment files to [bold]{out_dir}[/bold]")
+    console.print(
+        f"Run: qra research --data-source crypto_l2 --data-path {out_dir} "
+        f"--symbol {inst_id} --tick-size 0.1"
+    )
+
+
 @app.command()
 def dashboard(
     host: str = typer.Option("127.0.0.1"),

@@ -4,6 +4,13 @@ from quant_research_agent.config import DataConfig
 
 from .crypto_l2 import frame_to_events, load_l2, normalize_frame
 from .dataset import Dataset, LeakageError, PartitionBounds
+from .okx import (
+    fetch_okx,
+    record_okx_async,
+    record_okx_segmented,
+    record_okx_segmented_async,
+    rows_to_frame,
+)
 from .partition import partition_events
 from .synthetic import generate_synthetic, is_efficient_market
 
@@ -24,6 +31,7 @@ __all__ = [
     "Dataset",
     "LeakageError",
     "PartitionBounds",
+    "fetch_okx",
     "frame_to_events",
     "generate_synthetic",
     "is_efficient_market",
@@ -31,4 +39,8 @@ __all__ = [
     "load_l2",
     "normalize_frame",
     "partition_events",
+    "record_okx_async",
+    "record_okx_segmented",
+    "record_okx_segmented_async",
+    "rows_to_frame",
 ]

@@ -19,6 +19,7 @@ dependencies = [
     "jinja2>=3.1",
     "opentelemetry-sdk>=1.25",
     "opentelemetry-api>=1.25",
+    "websockets>=16.0",
 ]
 
 [project.optional-dependencies]
