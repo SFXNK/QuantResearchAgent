@@ -115,17 +115,41 @@ class ExperimentStore:
             con.commit()
 
     # --- queries -----------------------------------------------------------
+    @staticmethod
+    def run_status(row: dict[str, Any]) -> str:
+        """Infer run status without a schema migration: unfinished runs have pbo=NULL."""
+        return "running" if row.get("pbo") is None else "completed"
+
     def list_runs(self, limit: int = 50) -> list[dict[str, Any]]:
         with closing(self._connect()) as con:
             rows = con.execute(
                 "SELECT * FROM runs ORDER BY id DESC LIMIT ?", (limit,)
             ).fetchall()
-            return [dict(r) for r in rows]
+            out = [dict(r) for r in rows]
+            for r in out:
+                r["status"] = self.run_status(r)
+            return out
 
     def run(self, run_id: int) -> dict[str, Any] | None:
         with closing(self._connect()) as con:
             row = con.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
-            return dict(row) if row else None
+            if row is None:
+                return None
+            out = dict(row)
+            out["status"] = self.run_status(out)
+            return out
+
+    def experiments_for(self, run_id: int) -> list[dict[str, Any]]:
+        with closing(self._connect()) as con:
+            rows = con.execute(
+                """
+                SELECT id, run_id, experiment_id, hypothesis, strategy_name, strategy_code,
+                       val_sharpe, submitted, steps, prompt_tokens, completion_tokens
+                FROM experiments WHERE run_id = ? ORDER BY experiment_id ASC
+                """,
+                (run_id,),
+            ).fetchall()
+            return [dict(r) for r in rows]
 
     def evaluations_for(self, run_id: int) -> list[dict[str, Any]]:
         with closing(self._connect()) as con:
@@ -134,6 +158,41 @@ class ExperimentStore:
                 (run_id,),
             ).fetchall()
             return [dict(r) for r in rows]
+
+    def survivors(self, limit: int = 100) -> list[dict[str, Any]]:
+        """Survived strategies with hypothesis/code joined from experiments when possible."""
+        with closing(self._connect()) as con:
+            rows = con.execute(
+                """
+                SELECT e.*, r.symbol, r.model_name, r.created_at,
+                       x.hypothesis, x.strategy_code, x.val_sharpe
+                FROM evaluations e
+                JOIN runs r ON e.run_id = r.id
+                LEFT JOIN experiments x
+                  ON x.run_id = e.run_id AND x.experiment_id = e.experiment_id
+                WHERE e.survived = 1
+                ORDER BY e.holdout_sharpe DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def survivor(self, eval_id: int) -> dict[str, Any] | None:
+        with closing(self._connect()) as con:
+            row = con.execute(
+                """
+                SELECT e.*, r.symbol, r.model_name, r.created_at,
+                       x.hypothesis, x.strategy_code, x.val_sharpe
+                FROM evaluations e
+                JOIN runs r ON e.run_id = r.id
+                LEFT JOIN experiments x
+                  ON x.run_id = e.run_id AND x.experiment_id = e.experiment_id
+                WHERE e.id = ? AND e.survived = 1
+                """,
+                (eval_id,),
+            ).fetchone()
+            return dict(row) if row else None
 
     def leaderboard(self, limit: int = 25) -> list[dict[str, Any]]:
         with closing(self._connect()) as con:
@@ -160,3 +219,18 @@ class ExperimentStore:
                 (run_id,),
             ).fetchone()
             return dict(row) if row else {}
+
+    def overview_counts(self) -> dict[str, int]:
+        with closing(self._connect()) as con:
+            n_runs = con.execute("SELECT COUNT(*) FROM runs").fetchone()[0]
+            n_running = con.execute("SELECT COUNT(*) FROM runs WHERE pbo IS NULL").fetchone()[0]
+            n_survivors = con.execute(
+                "SELECT COUNT(*) FROM evaluations WHERE survived = 1"
+            ).fetchone()[0]
+            n_evals = con.execute("SELECT COUNT(*) FROM evaluations").fetchone()[0]
+            return {
+                "runs": int(n_runs),
+                "running": int(n_running),
+                "survivors": int(n_survivors),
+                "evaluations": int(n_evals),
+            }

@@ -220,13 +220,29 @@ def dashboard(
     host: str = typer.Option("127.0.0.1"),
     port: int = typer.Option(8000),
     db: Path = typer.Option(Path("runs/quant_research_agent.sqlite")),
+    data_root: Path = typer.Option(Path("data/raw"), help="Root directory of recorded market data."),
+    web_dir: Path = typer.Option(
+        Path("web/dist"), help="Built SPA directory; mounted if index.html exists."
+    ),
 ) -> None:
-    """Launch the results dashboard."""
+    """Launch the monitoring API (and SPA if web/dist is built)."""
     import uvicorn
 
     from quant_research_agent.obs.dashboard import create_app
 
-    uvicorn.run(create_app(db), host=host, port=port)
+    console.print(f"API on http://{host}:{port}  db={db}  data_root={data_root}")
+    if (web_dir / "index.html").exists():
+        console.print(f"Serving SPA from {web_dir}")
+    else:
+        console.print(
+            f"[dim]No SPA at {web_dir} — API only. "
+            "Dev: cd web && npm run dev (proxies to :8000)[/dim]"
+        )
+    uvicorn.run(
+        create_app(db, data_root=data_root, web_dir=web_dir),
+        host=host,
+        port=port,
+    )
 
 
 @app.command()

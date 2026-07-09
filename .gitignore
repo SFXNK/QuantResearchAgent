@@ -32,6 +32,10 @@ runs/
 secrets.properties
 *.secret.properties
 
+# Frontend
+web/node_modules/
+web/dist/
+
 # Editor / OS
 .idea/
 .vscode/

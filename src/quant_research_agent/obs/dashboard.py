@@ -1,121 +1,123 @@
-"""FastAPI dashboard: run history, per-run results, and a strategy leaderboard."""
+"""FastAPI monitoring API + optional SPA static mount.
+
+JSON endpoints power the React dashboard. When ``web_dir`` points at a built
+``web/dist``, the SPA is served for non-API routes.
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
+from .data_monitor import get_dataset, list_datasets
 from .store import ExperimentStore
 
-_STYLE = """
-<style>
-  body { font-family: -apple-system, system-ui, sans-serif; margin: 2rem; color: #1c1c28; }
-  h1, h2 { font-weight: 650; }
-  table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-  th, td { text-align: left; padding: 0.45rem 0.7rem; border-bottom: 1px solid #e6e6ef; font-size: 14px; }
-  th { background: #f5f5fa; }
-  .yes { color: #0a7d28; font-weight: 600; }
-  .no { color: #9aa0aa; }
-  a { color: #2b59ff; text-decoration: none; }
-  .pill { background:#eef1ff; border-radius:10px; padding:2px 8px; font-size:12px; }
-  code { background:#f5f5fa; padding:1px 5px; border-radius:5px; }
-</style>
-"""
 
-
-def _fmt(x: object, nd: int = 3) -> str:
-    try:
-        return f"{float(x):.{nd}f}"
-    except (TypeError, ValueError):
-        return str(x)
-
-
-def create_app(db_path: str | Path) -> FastAPI:
+def create_app(
+    db_path: str | Path,
+    data_root: str | Path = "data/raw",
+    web_dir: str | Path | None = None,
+) -> FastAPI:
     store = ExperimentStore(db_path)
-    app = FastAPI(title="QuantResearchAgent Dashboard")
+    data_root = Path(data_root)
+    web_path = Path(web_dir) if web_dir else None
 
-    @app.get("/", response_class=HTMLResponse)
-    def index() -> str:
-        runs = store.list_runs()
-        rows = "".join(
-            f"<tr><td><a href='/runs/{r['id']}'>#{r['id']}</a></td>"
-            f"<td>{r['symbol']}</td><td>{r['model_name']}</td>"
-            f"<td>{r['n_experiments']}</td>"
-            f"<td>{_fmt(r['pbo'])}</td>"
-            f"<td>{r['n_survivors']}</td>"
-            f"<td>{_fmt(r['survival_rate'])}</td></tr>"
-            for r in runs
-        )
-        lb = store.leaderboard()
-        lb_rows = "".join(
-            f"<tr><td>{e['strategy_name']}</td><td>{e['symbol']}</td>"
-            f"<td>{_fmt(e['holdout_sharpe'])}</td><td>{_fmt(e['deflated_sr'])}</td>"
-            f"<td>{_fmt(e['adjusted_pvalue'])}</td>"
-            f"<td class='{'yes' if e['survived'] else 'no'}'>"
-            f"{'survived' if e['survived'] else 'failed'}</td></tr>"
-            for e in lb
-        )
-        return f"""
-        <html><head><title>QuantResearchAgent</title>{_STYLE}</head><body>
-        <h1>QuantResearchAgent</h1>
-        <p class='pill'>a harness that resists fooling itself</p>
-        <h2>Runs</h2>
-        <table><tr><th>Run</th><th>Symbol</th><th>Model</th><th>Experiments</th>
-        <th>PBO</th><th>Survivors</th><th>Survival rate</th></tr>{rows}</table>
-        <h2>Strategy leaderboard (out-of-sample)</h2>
-        <table><tr><th>Strategy</th><th>Symbol</th><th>Holdout Sharpe</th>
-        <th>Deflated SR</th><th>Adj. p-value</th><th>Verdict</th></tr>{lb_rows}</table>
-        </body></html>
-        """
+    app = FastAPI(title="QuantResearchAgent Monitor", version="0.2.0")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-    @app.get("/runs/{run_id}", response_class=HTMLResponse)
-    def run_view(run_id: int) -> str:
-        run = store.run(run_id)
-        if run is None:
-            return "<h1>Run not found</h1>"
-        evals = store.evaluations_for(run_id)
-        usage = store.usage_totals(run_id)
-        rows = "".join(
-            f"<tr><td>{e['strategy_name']}</td>"
-            f"<td>{_fmt(e['holdout_sharpe'])}</td>"
-            f"<td>{_fmt(e['max_drawdown'])}</td>"
-            f"<td>{_fmt(e['deflated_sr'])}</td>"
-            f"<td>{_fmt(e['pvalue'])}</td><td>{_fmt(e['adjusted_pvalue'])}</td>"
-            f"<td>{_fmt(e['wf_frac_positive'])}</td>"
-            f"<td class='{'yes' if e['survived'] else 'no'}'>"
-            f"{'survived' if e['survived'] else 'failed'}</td></tr>"
-            for e in evals
-        )
-        return f"""
-        <html><head><title>Run #{run_id}</title>{_STYLE}</head><body>
-        <p><a href='/'>&larr; all runs</a></p>
-        <h1>Run #{run_id} &mdash; {run['symbol']}</h1>
-        <p>Model: <code>{run['model_name']}</code> &middot; PBO:
-        <b>{_fmt(run['pbo'])}</b> &middot; Survivors: <b>{run['n_survivors']}</b> /
-        {run['n_experiments']} &middot; Best baseline Sharpe:
-        {_fmt(run['best_baseline_sharpe'])}</p>
-        <p>Tokens: {usage.get('p', 0):.0f}+{usage.get('c', 0):.0f} &middot;
-        Cost: ${usage.get('cost', 0):.4f} &middot; LLM calls: {usage.get('calls', 0):.0f}
-        (cache hits {usage.get('cached', 0):.0f})</p>
-        <h2>Candidate evaluations (holdout)</h2>
-        <table><tr><th>Strategy</th><th>Holdout Sharpe</th><th>Max DD</th>
-        <th>Deflated SR</th><th>p-value</th><th>Adj. p</th><th>WF frac+</th>
-        <th>Verdict</th></tr>{rows}</table>
-        </body></html>
-        """
+    @app.get("/api/health")
+    def health() -> dict:
+        return {"ok": True, "db": str(Path(db_path).resolve()), "data_root": str(data_root.resolve())}
+
+    @app.get("/api/overview")
+    def overview() -> dict:
+        counts = store.overview_counts()
+        datasets = list_datasets(data_root)
+        active = sum(1 for d in datasets if d.get("active"))
+        return {
+            **counts,
+            "datasets": len(datasets),
+            "active_datasets": active,
+            "recent_runs": store.list_runs(limit=8),
+            "top_survivors": store.survivors(limit=8),
+        }
 
     @app.get("/api/runs")
-    def api_runs() -> list[dict]:
-        return store.list_runs()
+    def api_runs(limit: int = 50) -> list[dict]:
+        return store.list_runs(limit=limit)
 
     @app.get("/api/runs/{run_id}")
     def api_run(run_id: int) -> dict:
+        run = store.run(run_id)
+        if run is None:
+            raise HTTPException(404, f"run {run_id} not found")
         return {
-            "run": store.run(run_id),
+            "run": run,
             "evaluations": store.evaluations_for(run_id),
             "usage": store.usage_totals(run_id),
         }
+
+    @app.get("/api/runs/{run_id}/experiments")
+    def api_experiments(run_id: int) -> list[dict]:
+        if store.run(run_id) is None:
+            raise HTTPException(404, f"run {run_id} not found")
+        return store.experiments_for(run_id)
+
+    @app.get("/api/factors")
+    def api_factors(limit: int = 100) -> list[dict]:
+        return store.survivors(limit=limit)
+
+    @app.get("/api/factors/{eval_id}")
+    def api_factor(eval_id: int) -> dict:
+        row = store.survivor(eval_id)
+        if row is None:
+            raise HTTPException(404, f"survivor evaluation {eval_id} not found")
+        return row
+
+    @app.get("/api/leaderboard")
+    def api_leaderboard(limit: int = 25) -> list[dict]:
+        return store.leaderboard(limit=limit)
+
+    @app.get("/api/data/datasets")
+    def api_datasets() -> list[dict]:
+        return list_datasets(data_root)
+
+    @app.get("/api/data/datasets/{name}")
+    def api_dataset(name: str) -> dict:
+        ds = get_dataset(data_root, name)
+        if ds is None:
+            raise HTTPException(404, f"dataset {name!r} not found under {data_root}")
+        return ds
+
+    # Serve SPA when a built dist exists
+    if web_path is not None and web_path.is_dir() and (web_path / "index.html").exists():
+        assets = web_path / "assets"
+        if assets.is_dir():
+            app.mount("/assets", StaticFiles(directory=assets), name="assets")
+
+        @app.get("/{full_path:path}")
+        def spa_fallback(full_path: str) -> FileResponse:  # noqa: ARG001
+            # Never shadow API
+            if full_path.startswith("api/"):
+                raise HTTPException(404)
+            candidate = web_path / full_path
+            if full_path and candidate.is_file():
+                return FileResponse(candidate)
+            return FileResponse(web_path / "index.html")
 
     return app
