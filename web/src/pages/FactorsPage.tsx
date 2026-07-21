@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -13,7 +13,20 @@ import { fmtNum, fmtTime } from "../format";
 import { usePolling } from "../hooks/usePolling";
 
 export function FactorsPage() {
-  const { data, error, loading } = usePolling(() => api.factors(100), 5000);
+  const { data, error, loading, refresh } = usePolling(() => api.factors(100), 5000);
+  const navigate = useNavigate();
+
+  async function onUnmark(id: number) {
+    if (!confirm("Remove survivor mark from this evaluation?")) return;
+    await api.setSurvived(id, false);
+    refresh();
+  }
+
+  async function onDelete(id: number) {
+    if (!confirm("Permanently delete this evaluation row?")) return;
+    await api.deleteFactor(id);
+    refresh();
+  }
 
   if (loading && !data) return <div className="empty">Loading survivors…</div>;
   if (error && !data) return <div className="error-banner">{error}</div>;
@@ -31,6 +44,7 @@ export function FactorsPage() {
           <h1>Survivors</h1>
           <p>
             Strategies that beat baselines on holdout, clear FDR, and pass deflated Sharpe ≥ 0.95.
+            You can also curate marks manually.
           </p>
         </div>
       </div>
@@ -81,6 +95,7 @@ export function FactorsPage() {
                 <th>Max DD</th>
                 <th>Hypothesis</th>
                 <th>Run</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -104,6 +119,19 @@ export function FactorsPage() {
                     <Link to={`/runs/${f.run_id}`}>#{f.run_id}</Link>
                     <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
                       {fmtTime(f.created_at)}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="btn-row">
+                      <button type="button" className="btn sm" onClick={() => navigate(`/factors/${f.id}`)}>
+                        open
+                      </button>
+                      <button type="button" className="btn sm" onClick={() => onUnmark(f.id)}>
+                        unmark
+                      </button>
+                      <button type="button" className="btn danger sm" onClick={() => onDelete(f.id)}>
+                        delete
+                      </button>
                     </div>
                   </td>
                 </tr>

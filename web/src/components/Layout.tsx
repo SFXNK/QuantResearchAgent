@@ -5,6 +5,7 @@ const links = [
   { to: "/data", label: "Data Capture" },
   { to: "/runs", label: "Runs" },
   { to: "/factors", label: "Survivors" },
+  { to: "/jobs", label: "Jobs" },
 ];
 
 export function Layout() {
@@ -28,7 +29,7 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="nav-foot">poll · 4s</div>
+        <div className="nav-foot">poll · actions enabled</div>
       </aside>
       <main className="main">
         <Outlet />

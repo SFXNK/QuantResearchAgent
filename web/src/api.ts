@@ -1,4 +1,6 @@
 export type RunStatus = "running" | "completed";
+export type JobStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
+export type JobKind = "record" | "research";
 
 export interface Run {
   id: number;
@@ -94,6 +96,19 @@ export interface DatasetDetail extends DatasetSummary {
   segments: SegmentInfo[];
 }
 
+export interface Job {
+  id: string;
+  kind: JobKind;
+  status: JobStatus;
+  created_at: number;
+  started_at: number | null;
+  finished_at: number | null;
+  params: Record<string, unknown>;
+  progress: Record<string, unknown>;
+  result: Record<string, unknown> | null;
+  error: string | null;
+}
+
 export interface Overview {
   runs: number;
   running: number;
@@ -103,16 +118,58 @@ export interface Overview {
   active_datasets: number;
   recent_runs: Run[];
   top_survivors: Factor[];
+  jobs?: Job[];
 }
 
-async function get<T>(path: string): Promise<T> {
-  const res = await fetch(path);
+export interface RecordRequest {
+  inst_id: string;
+  name?: string;
+  mode: "long" | "short";
+  segment_minutes?: number;
+  total_minutes?: number | null;
+  duration_s?: number;
+  qty_scale?: number;
+  channel?: string;
+}
+
+export interface ResearchRequest {
+  experiments: number;
+  model: string;
+  provider?: string | null;
+  base_url?: string | null;
+  api_key_env?: string | null;
+  seed: number;
+  max_parallel: number;
+  n_events: number;
+  symbol: string;
+  data_source: "synthetic" | "crypto_l2";
+  data_path?: string | null;
+  tick_size: number;
+  sandbox: boolean;
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+    },
+  });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`${res.status} ${path}: ${text}`);
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
+
+const get = <T>(path: string) => request<T>(path);
+const post = <T>(path: string, body?: unknown) =>
+  request<T>(path, { method: "POST", body: body !== undefined ? JSON.stringify(body) : undefined });
+const patch = <T>(path: string, body: unknown) =>
+  request<T>(path, { method: "PATCH", body: JSON.stringify(body) });
+const del = <T>(path: string) => request<T>(path, { method: "DELETE" });
 
 export const api = {
   health: () => get<{ ok: boolean }>("/api/health"),
@@ -121,8 +178,23 @@ export const api = {
   run: (id: number) =>
     get<{ run: Run; evaluations: Evaluation[]; usage: UsageTotals }>(`/api/runs/${id}`),
   experiments: (id: number) => get<Experiment[]>(`/api/runs/${id}/experiments`),
+  deleteRun: (id: number) => del<{ ok: boolean }>(`/api/runs/${id}`),
   factors: (limit = 100) => get<Factor[]>(`/api/factors?limit=${limit}`),
   factor: (id: number) => get<Factor>(`/api/factors/${id}`),
+  setSurvived: (id: number, survived: boolean) =>
+    patch<Factor>(`/api/factors/${id}`, { survived }),
+  deleteFactor: (id: number) => del<{ ok: boolean }>(`/api/factors/${id}`),
   datasets: () => get<DatasetSummary[]>("/api/data/datasets"),
   dataset: (name: string) => get<DatasetDetail>(`/api/data/datasets/${encodeURIComponent(name)}`),
+  deleteDataset: (name: string) =>
+    del<{ ok: boolean }>(`/api/data/datasets/${encodeURIComponent(name)}`),
+  deleteSegment: (name: string, filename: string) =>
+    del<{ ok: boolean }>(
+      `/api/data/datasets/${encodeURIComponent(name)}/segments/${encodeURIComponent(filename)}`,
+    ),
+  jobs: (limit = 50) => get<Job[]>(`/api/jobs?limit=${limit}`),
+  job: (id: string) => get<Job>(`/api/jobs/${id}`),
+  cancelJob: (id: string) => post<Job>(`/api/jobs/${id}/cancel`),
+  startRecord: (body: RecordRequest) => post<Job>("/api/actions/record", body),
+  startResearch: (body: ResearchRequest) => post<Job>("/api/actions/research", body),
 };

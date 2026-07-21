@@ -224,6 +224,7 @@ def dashboard(
     web_dir: Path = typer.Option(
         Path("web/dist"), help="Built SPA directory; mounted if index.html exists."
     ),
+    run_dir: Path = typer.Option(Path("runs"), help="Research artifact directory."),
 ) -> None:
     """Launch the monitoring API (and SPA if web/dist is built)."""
     import uvicorn
@@ -239,7 +240,7 @@ def dashboard(
             "Dev: cd web && npm run dev (proxies to :8000)[/dim]"
         )
     uvicorn.run(
-        create_app(db, data_root=data_root, web_dir=web_dir),
+        create_app(db, data_root=data_root, web_dir=web_dir, run_dir=run_dir),
         host=host,
         port=port,
     )

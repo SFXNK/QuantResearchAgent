@@ -5,11 +5,23 @@ import { usePolling } from "../hooks/usePolling";
 
 export function DataDetailPage() {
   const { name = "" } = useParams();
-  const { data, error, loading } = usePolling(
+  const { data, error, loading, refresh } = usePolling(
     () => api.dataset(name),
     4000,
     Boolean(name),
   );
+
+  async function onDeleteSegment(filename: string) {
+    if (!confirm(`Delete segment ${filename}?`)) return;
+    await api.deleteSegment(name, filename);
+    refresh();
+  }
+
+  async function onDeleteAll() {
+    if (!confirm(`Delete entire dataset "${name}"?`)) return;
+    await api.deleteDataset(name);
+    window.location.href = "/data";
+  }
 
   if (!name) return <div className="error-banner">Missing dataset name</div>;
   if (loading && !data) return <div className="empty">Loading {name}…</div>;
@@ -26,9 +38,14 @@ export function DataDetailPage() {
           <h1>{data.name}</h1>
           <p className="mono">{data.path}</p>
         </div>
-        <span className={`pill ${data.active ? "active" : "muted"}`}>
-          {data.active ? "recording" : "idle"}
-        </span>
+        <div className="btn-row">
+          <span className={`pill ${data.active ? "active" : "muted"}`}>
+            {data.active ? "recording" : "idle"}
+          </span>
+          <button type="button" className="btn danger sm" onClick={onDeleteAll}>
+            delete dataset
+          </button>
+        </div>
       </div>
       {error && <div className="error-banner">{error}</div>}
 
@@ -64,6 +81,7 @@ export function DataDetailPage() {
               <th>Modified</th>
               <th>ts min</th>
               <th>ts max</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -78,6 +96,15 @@ export function DataDetailPage() {
                 </td>
                 <td className="mono" style={{ fontSize: "0.75rem" }}>
                   {s.ts_max ?? "—"}
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="btn danger sm"
+                    onClick={() => onDeleteSegment(s.name)}
+                  >
+                    delete
+                  </button>
                 </td>
               </tr>
             ))}

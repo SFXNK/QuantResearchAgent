@@ -170,3 +170,35 @@ def get_dataset(
             return asdict(_summarize(f.stem, f, [f], active_window_s))
 
     return None
+
+
+def delete_dataset(root: str | Path, name: str) -> bool:
+    """Delete a dataset directory or loose file under ``root``. Returns True if removed."""
+    import shutil
+
+    root = Path(root).resolve()
+    if not root.exists():
+        return False
+
+    candidate_dir = (root / name).resolve()
+    if candidate_dir.is_dir() and candidate_dir.parent == root:
+        shutil.rmtree(candidate_dir)
+        return True
+
+    for f in [*root.glob("*.parquet"), *root.glob("*.csv")]:
+        if f.stem == name:
+            f.unlink()
+            return True
+    return False
+
+
+def delete_segment(root: str | Path, dataset: str, filename: str) -> bool:
+    """Delete one segment file inside a dataset directory."""
+    root = Path(root).resolve()
+    path = (root / dataset / filename).resolve()
+    if not str(path).startswith(str(root)):
+        return False
+    if path.is_file() and path.parent.name == dataset:
+        path.unlink()
+        return True
+    return False

@@ -4,6 +4,7 @@ import { DataDetailPage } from "./pages/DataDetailPage";
 import { DataPage } from "./pages/DataPage";
 import { FactorDetailPage } from "./pages/FactorDetailPage";
 import { FactorsPage } from "./pages/FactorsPage";
+import { JobsPage } from "./pages/JobsPage";
 import { OverviewPage } from "./pages/OverviewPage";
 import { RunDetailPage } from "./pages/RunDetailPage";
 import { RunsPage } from "./pages/RunsPage";
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="runs/:id" element={<RunDetailPage />} />
           <Route path="factors" element={<FactorsPage />} />
           <Route path="factors/:id" element={<FactorDetailPage />} />
+          <Route path="jobs" element={<JobsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

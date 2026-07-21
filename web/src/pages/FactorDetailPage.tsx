@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { fmtNum, fmtPct, fmtTime } from "../format";
 import { usePolling } from "../hooks/usePolling";
@@ -6,14 +6,27 @@ import { usePolling } from "../hooks/usePolling";
 export function FactorDetailPage() {
   const { id = "" } = useParams();
   const evalId = Number(id);
-  const { data, error, loading } = usePolling(
+  const navigate = useNavigate();
+  const { data, error, loading, refresh } = usePolling(
     () => api.factor(evalId),
     8000,
     Number.isFinite(evalId) && evalId > 0,
   );
 
+  async function toggleSurvived() {
+    if (!data) return;
+    await api.setSurvived(evalId, !data.survived);
+    refresh();
+  }
+
+  async function onDelete() {
+    if (!confirm("Permanently delete this evaluation?")) return;
+    await api.deleteFactor(evalId);
+    navigate("/factors");
+  }
+
   if (!Number.isFinite(evalId)) return <div className="error-banner">Invalid factor id</div>;
-  if (loading && !data) return <div className="empty">Loading survivor…</div>;
+  if (loading && !data) return <div className="empty">Loading…</div>;
   if (error && !data) return <div className="error-banner">{error}</div>;
   if (!data) return null;
 
@@ -30,7 +43,17 @@ export function FactorDetailPage() {
             {data.model_name} · {fmtTime(data.created_at)}
           </p>
         </div>
-        <span className="pill ok">survived</span>
+        <div className="btn-row">
+          <span className={`pill ${data.survived ? "ok" : "fail"}`}>
+            {data.survived ? "survived" : "not marked"}
+          </span>
+          <button type="button" className="btn sm" onClick={toggleSurvived}>
+            {data.survived ? "unmark" : "mark survivor"}
+          </button>
+          <button type="button" className="btn danger sm" onClick={onDelete}>
+            delete
+          </button>
+        </div>
       </div>
       {error && <div className="error-banner">{error}</div>}
 

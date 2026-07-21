@@ -372,3 +372,133 @@ table.data tr:hover td {
 .back-link:hover {
   color: var(--accent);
 }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 550;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn:hover {
+  background: var(--bg-panel);
+  border-color: var(--accent);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: var(--accent-dim);
+  border-color: rgba(61, 214, 198, 0.45);
+  color: var(--accent);
+}
+
+.btn.primary:hover {
+  background: rgba(61, 214, 198, 0.22);
+}
+
+.btn.danger {
+  background: rgba(232, 93, 93, 0.1);
+  border-color: rgba(232, 93, 93, 0.35);
+  color: var(--danger);
+}
+
+.btn.danger:hover {
+  background: rgba(232, 93, 93, 0.2);
+}
+
+.btn.sm {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-field label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.88rem;
+  font-family: var(--font);
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.form-field.span-2 {
+  grid-column: span 2;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.toast {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-family: var(--mono);
+}
+
+.pill.failed {
+  background: rgba(232, 93, 93, 0.12);
+  color: var(--danger);
+}
+
+.pill.queued {
+  background: rgba(232, 168, 56, 0.12);
+  color: var(--warn);
+}
+
+.pill.cancelled {
+  background: rgba(139, 154, 171, 0.12);
+  color: var(--text-muted);
+}

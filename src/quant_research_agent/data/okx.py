@@ -287,6 +287,7 @@ async def record_okx_segmented_async(
     suffix: str = ".parquet",
     on_segment=None,
     on_reconnect=None,
+    stop_event: asyncio.Event | None = None,
 ) -> list[Path]:
     """Record OKX continuously, flushing one file every ``segment_s`` seconds.
 
@@ -308,6 +309,7 @@ async def record_okx_segmented_async(
         suffix: ``.parquet`` (default) or ``.csv``.
         on_segment: Optional ``callback(path, n_events)`` after each file write.
         on_reconnect: Optional ``callback(attempt, exc)`` on each reconnect.
+        stop_event: When set, recording stops gracefully (final segment flushed).
 
     Returns the list of written segment paths.
     """
@@ -341,6 +343,8 @@ async def record_okx_segmented_async(
     attempt = 0
 
     def expired() -> bool:
+        if stop_event is not None and stop_event.is_set():
+            return True
         return total_deadline is not None and time.monotonic() >= total_deadline
 
     try:
@@ -364,10 +368,10 @@ async def record_okx_segmented_async(
                                 bound = min(bound, total_deadline)
                             try:
                                 raw = await asyncio.wait_for(
-                                    ws.recv(), timeout=max(0.0, bound - now)
+                                    ws.recv(), timeout=max(0.05, bound - now)
                                 )
                             except TimeoutError:
-                                continue  # boundary handled at loop top
+                                continue  # boundary / stop handled at loop top
                             _handle_message(raw, depth, channel, qty_scale, seg_rows)
                     finally:
                         pinger.cancel()
@@ -384,7 +388,7 @@ async def record_okx_segmented_async(
             else:
                 break
     finally:
-        flush()  # persist the final partial segment (also on Ctrl+C)
+        flush()  # persist the final partial segment (also on Ctrl+C / stop)
     return written
 
 
@@ -399,6 +403,7 @@ def record_okx_segmented(
     suffix: str = ".parquet",
     on_segment=None,
     on_reconnect=None,
+    stop_event: asyncio.Event | None = None,
 ) -> list[Path]:
     """Blocking wrapper around :func:`record_okx_segmented_async`."""
     return asyncio.run(
@@ -413,6 +418,7 @@ def record_okx_segmented(
             suffix=suffix,
             on_segment=on_segment,
             on_reconnect=on_reconnect,
+            stop_event=stop_event,
         )
     )
 

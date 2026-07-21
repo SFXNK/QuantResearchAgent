@@ -234,3 +234,65 @@ class ExperimentStore:
                 "survivors": int(n_survivors),
                 "evaluations": int(n_evals),
             }
+
+    def delete_run(self, run_id: int) -> bool:
+        """Delete a run and all related experiments / evaluations / usage rows."""
+        with closing(self._connect()) as con:
+            row = con.execute("SELECT id FROM runs WHERE id = ?", (run_id,)).fetchone()
+            if row is None:
+                return False
+            con.execute("DELETE FROM usage WHERE run_id = ?", (run_id,))
+            con.execute("DELETE FROM evaluations WHERE run_id = ?", (run_id,))
+            con.execute("DELETE FROM experiments WHERE run_id = ?", (run_id,))
+            con.execute("DELETE FROM runs WHERE id = ?", (run_id,))
+            con.commit()
+            return True
+
+    def delete_evaluation(self, eval_id: int) -> bool:
+        with closing(self._connect()) as con:
+            cur = con.execute("DELETE FROM evaluations WHERE id = ?", (eval_id,))
+            con.commit()
+            return cur.rowcount > 0
+
+    def set_survived(self, eval_id: int, survived: bool) -> dict[str, Any] | None:
+        """Manually mark / unmark an evaluation as a survivor (UI curation)."""
+        with closing(self._connect()) as con:
+            row = con.execute("SELECT * FROM evaluations WHERE id = ?", (eval_id,)).fetchone()
+            if row is None:
+                return None
+            con.execute(
+                "UPDATE evaluations SET survived = ? WHERE id = ?",
+                (1 if survived else 0, eval_id),
+            )
+            # Keep run survivor counts roughly consistent
+            run_id = int(row["run_id"])
+            n_surv = con.execute(
+                "SELECT COUNT(*) FROM evaluations WHERE run_id = ? AND survived = 1",
+                (run_id,),
+            ).fetchone()[0]
+            n_exp = con.execute(
+                "SELECT COUNT(*) FROM evaluations WHERE run_id = ?", (run_id,)
+            ).fetchone()[0]
+            rate = (n_surv / n_exp) if n_exp else 0.0
+            con.execute(
+                "UPDATE runs SET n_survivors = ?, survival_rate = ? WHERE id = ?",
+                (n_surv, rate, run_id),
+            )
+            con.commit()
+        return self.evaluation(eval_id)
+
+    def evaluation(self, eval_id: int) -> dict[str, Any] | None:
+        with closing(self._connect()) as con:
+            row = con.execute(
+                """
+                SELECT e.*, r.symbol, r.model_name, r.created_at,
+                       x.hypothesis, x.strategy_code, x.val_sharpe
+                FROM evaluations e
+                JOIN runs r ON e.run_id = r.id
+                LEFT JOIN experiments x
+                  ON x.run_id = e.run_id AND x.experiment_id = e.experiment_id
+                WHERE e.id = ?
+                """,
+                (eval_id,),
+            ).fetchone()
+            return dict(row) if row else None
